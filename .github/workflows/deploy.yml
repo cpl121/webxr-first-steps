@@ -1,11 +1,9 @@
 name: Deploy
 
 on:
-  # Runs on pushes to the main branch
   push:
     branches: ['main']
 
-  # Allows manual runs from the GitHub Actions tab
   workflow_dispatch:
 
 jobs:
@@ -23,7 +21,9 @@ jobs:
           cache: 'pnpm'
 
       - name: Install pnpm
-        run: corepack enable && corepack prepare pnpm@latest --activate
+        uses: pnpm/action-setup@v3
+        with:
+          version: latest
 
       - name: Install Dependencies
         run: pnpm install
