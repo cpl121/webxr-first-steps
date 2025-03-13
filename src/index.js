@@ -13,10 +13,6 @@ import { XR_BUTTONS } from 'gamepad-wrapper';
 import { gsap } from 'gsap';
 import { init } from './init.js';
 
-/* const bulletGeometry = new THREE.SphereGeometry(0.02);
-const bulletMaterial = new THREE.MeshStandardMaterial({color: 'gray'});
-const bulletPrototype = new THREE.Mesh(bulletGeometry, bulletMaterial); */
-
 const bullets = {};
 const forwardVector = new THREE.Vector3(0, 0, -1);
 const bulletSpeed = 5;
@@ -105,7 +101,21 @@ function setupScene({ scene, camera, renderer, player, controllers }) {
 
 	// Load the blaster model
 	gltfLoader.load('assets/blaster.glb', gltf => {
-		blasterGroup.add(gltf.scene);
+		const blaster = gltf.scene;
+		blasterGroup.add(blaster);
+
+		const controller1 = renderer.xr.getController(0);
+		const controller2 = renderer.xr.getController(1);
+
+		if (controller1 && controller2) {
+			const leftBlaster = blaster.clone();
+			const rightBlaster = blaster.clone();
+
+			controller1.add(leftBlaster);
+			controller2.add(rightBlaster);
+		}
+
+		scene.add(controller1, controller2);
 	});
 
 	// Load and clone the target models
@@ -127,24 +137,57 @@ function setupScene({ scene, camera, renderer, player, controllers }) {
 	scoreText.position.set(0, 0.67, -1.44);
 	scoreText.rotateX(-Math.PI / 3.3);
 	updateScoreDisplay();
-
-	// // Load and set up positional audio
-	// const listener = new THREE.AudioListener();
-	// camera.add(listener);
-
-	// const audioLoader = new THREE.AudioLoader();
-	// laserSound = new THREE.PositionalAudio(listener);
-	// audioLoader.load('assets/laser.ogg', (buffer) => {
-	// 	laserSound.setBuffer(buffer);
-	// 	blasterGroup.add(laserSound);
-	// });
-
-	// scoreSound = new THREE.PositionalAudio(listener);
-	// audioLoader.load('assets/score.ogg', (buffer) => {
-	// 	scoreSound.setBuffer(buffer);
-	// 	scoreText.add(scoreSound);
-	// });
 }
+
+function shootBullets(gamepad, scene) {
+	  // Firing bullets
+	  if (gamepad.getButtonClick(XR_BUTTONS.TRIGGER)) {
+		  try {
+			  gamepad.getHapticActuator(0).pulse(0.6, 100);
+		  } catch {
+			  // do-nothing
+		  }
+
+		  // Play laser sound
+		  if (laserSound.isPlaying) laserSound.stop();
+		  laserSound.play();
+
+		  // Play score sound
+		  if (scoreSound.isPlaying) scoreSound.stop();
+		  scoreSound.play();
+
+		  // use the embedded bullet as prototype
+		  const bulletPrototype = blasterGroup.getObjectByName('bullet');
+		  if (!bulletPrototype) {
+            console.warn("⚠ Dont find the bullet prototype.");
+            return;
+       	 } else {
+			  const bullet = bulletPrototype.clone();
+			  bullet.visible = true
+			  scene.add(bullet);
+
+			  // copy position and quaternion directly from the bulletPrototype, instead of from raySpace
+			  bulletPrototype.getWorldPosition(bullet.position);
+			  bulletPrototype.getWorldQuaternion(bullet.quaternion);
+
+			  // bullet.position.add(forwardVector.applyQuaternion(bullet.quaternion));
+
+			  const directionVector = forwardVector
+				  .clone()
+				  .applyQuaternion(bullet.quaternion);
+
+				directionVector.y = 0; // Evitar disparos inclinados hacia arriba/abajo
+       			directionVector.normalize();
+
+			  bullet.userData = {
+				  velocity: directionVector.multiplyScalar(bulletSpeed),
+				  timeToLive: bulletTimeToLive > 0 ? bulletTimeToLive : 1.5,
+			  };
+
+			  bullets[bullet.uuid] = bullet;
+		  }
+	  }
+	}
 
 function onFrame(
 	delta,
@@ -152,98 +195,66 @@ function onFrame(
 	{ scene, camera, renderer, player, controllers },
 ) {
 	if (controllers.right) {
-		const {gamepad, raySpace, mesh} = controllers.right;
-	
-		// Attach the blaster to the right controller
-		if (!raySpace.children.includes(blasterGroup)) {
-		  raySpace.add(blasterGroup);
-		  mesh.visible = false; // Hide the default controller model
-		}
-	
-		// Firing bullets
-		if (gamepad.getButtonClick(XR_BUTTONS.TRIGGER)) {
-			try {
-				gamepad.getHapticActuator(0).pulse(0.6, 100);
-			} catch {
-				// do-nothing
-			}
-
-			// Play laser sound
-			if (laserSound.isPlaying) laserSound.stop();
-			laserSound.play();
-
-			// Play score sound
-			if (scoreSound.isPlaying) scoreSound.stop();
-			scoreSound.play();
-
-			// use the embedded bullet as prototype
-			const bulletPrototype = blasterGroup.getObjectByName('bullet');
-			if (bulletPrototype) {
-			const bullet = bulletPrototype.clone();
-			scene.add(bullet);
-			// copy position and quaternion directly from the bulletPrototype, instead of from raySpace
-			bulletPrototype.getWorldPosition(bullet.position);
-			bulletPrototype.getWorldQuaternion(bullet.quaternion);
-			const directionVector = forwardVector
-				.clone()
-				.applyQuaternion(bullet.quaternion);
-			bullet.userData = {
-				velocity: directionVector.multiplyScalar(bulletSpeed),
-				timeToLive: bulletTimeToLive,
-			};
-			bullets[bullet.uuid] = bullet;
-		  }
-		}
-		}
+		const {gamepad, mesh} = controllers.right;
+		mesh.visible = false; // Hide the default controller model
+		shootBullets(gamepad, scene);
+	}
+	if (controllers.left) {
+		const {gamepad, mesh} = controllers.left;
+		mesh.visible = false; // Hide the default controller model
+		shootBullets(gamepad, scene);
+	}
   
-		Object.values(bullets).forEach(bullet => {
-		  if (bullet.userData.timeToLive < 0) {
+	Object.values(bullets).forEach(bullet => {
+		if (bullet.userData.timeToLive < 0) {
 			delete bullets[bullet.uuid];
 			scene.remove(bullet);
 			return;
-		  }
-		  const deltaVec = bullet.userData.velocity.clone().multiplyScalar(delta);
-		  bullet.position.add(deltaVec);
-		  bullet.userData.timeToLive -= delta;
+		}
+		const deltaVec = bullet.userData.velocity.clone().multiplyScalar(delta);
+		console.log("deltaVec", deltaVec);
+		
+		bullet.position.add(deltaVec);
+		bullet.userData.timeToLive -= delta;
 
-		  targets
-		  .filter(target => target.visible)
-		  .forEach(target => {
-			const distance = target.position.distanceTo(bullet.position);
-			if (distance < 1) {
-			  delete bullets[bullet.uuid];
-			  scene.remove(bullet);
-	
-			  // make target disappear, and then reappear at a different place after 2 seconds
-			  gsap.to(target.scale, {
-				duration: 0.3,
-				x: 0,
-				y: 0,
-				z: 0,
-				onComplete: () => {
-				  target.visible = false;
-				  setTimeout(() => {
-					target.visible = true;
-					target.position.x = Math.random() * 10 - 5;
-					target.position.z = -Math.random() * 5 - 5;
-			  
-					// Scale back up the target
-					gsap.to(target.scale, {
-					  duration: 0.3,
-					  x: 1,
-					  y: 1,
-					  z: 1,
-					});
-				  }, 1000);
-				},
-			  });
-	
-			  score += 10; // Update the score when a target is hit
-			  updateScoreDisplay(); // Update the rendered troika-three-text object
-			}
-		  });
+		targets
+		.filter(target => target.visible)
+		.forEach(target => {
+		const distance = target.position.distanceTo(bullet.position);
+		if (distance < 1) {
+			delete bullets[bullet.uuid];
+			scene.remove(bullet);
+
+			// make target disappear, and then reappear at a different place after 2 seconds
+			gsap.to(target.scale, {
+			duration: 0.3,
+			x: 0,
+			y: 0,
+			z: 0,
+			onComplete: () => {
+				target.visible = false;
+				setTimeout(() => {
+				target.visible = true;
+				target.position.x = Math.random() * 10 - 5;
+				target.position.z = -Math.random() * 5 - 5;
+			
+				// Scale back up the target
+				gsap.to(target.scale, {
+					duration: 0.3,
+					x: 1,
+					y: 1,
+					z: 1,
+				});
+				}, 1000);
+			},
+			});
+
+			score += 10; // Update the score when a target is hit
+			updateScoreDisplay(); // Update the rendered troika-three-text object
+		}
 		});
-		gsap.ticker.tick(delta);
-	  }
+	});
+	gsap.ticker.tick(delta);
+	}
 
 init(setupScene, onFrame);
