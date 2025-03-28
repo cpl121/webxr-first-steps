@@ -22,10 +22,10 @@ scoreText.anchorX = 'center';
 scoreText.anchorY = 'middle';
 
 function updateScoreDisplay() {
-	const clampedScore = Math.max(0, Math.min(9999, score));
-	const displayScore = clampedScore.toString().padStart(4, '0');
-	scoreText.text = displayScore;
-	scoreText.sync();
+    const clampedScore = Math.max(0, Math.min(9999, score));
+    const displayScore = clampedScore.toString().padStart(4, '0');
+    scoreText.text = displayScore;
+    scoreText.sync();
 }
 ```
 
@@ -40,13 +40,13 @@ Next, we add the score text to the scene in `setupScene`:
 
 ```javascript
 function setupScene({ scene, camera, renderer, player, controllers }) {
-	// Other setup code...
+    // Other setup code...
 
-	// Add the score text to the scene
-	scene.add(scoreText);
-	scoreText.position.set(0, 0.67, -1.44);
-	scoreText.rotateX(-Math.PI / 3.3);
-	updateScoreDisplay();
+    // Add the score text to the scene
+    scene.add(scoreText);
+    scoreText.position.set(0, 0.67, -1.44);
+    scoreText.rotateX(-Math.PI / 3.3);
+    updateScoreDisplay();
 }
 ```
 
@@ -60,30 +60,30 @@ To determine whether a bullet hits a target, we use a proximity-based hit test. 
 
 ```javascript
 function onFrame() {
-	// ... unchanged params
-	Object.values(bullets).forEach((bullet) => {
-		// ... unchanged logic
-		targets
-			.filter((target) => target.visible)
-			.forEach((target) => {
-				const distance = target.position.distanceTo(bullet.position);
-				if (distance < 1) {
-					delete bullets[bullet.uuid];
-					scene.remove(bullet);
+    // ... unchanged params
+    Object.values(bullets).forEach((bullet) => {
+        // ... unchanged logic
+        targets
+            .filter((target) => target.visible)
+            .forEach((target) => {
+                const distance = target.position.distanceTo(bullet.position);
+                if (distance < 1) {
+                    delete bullets[bullet.uuid];
+                    scene.remove(bullet);
 
-					// make target disappear, and then reappear at a different place after 2 seconds
-					target.visible = false;
-					setTimeout(() => {
-						target.visible = true;
-						target.position.x = Math.random() * 10 - 5;
-						target.position.z = -Math.random() * 5 - 5;
-					}, 2000);
+                    // make target disappear, and then reappear at a different place after 2 seconds
+                    target.visible = false;
+                    setTimeout(() => {
+                        target.visible = true;
+                        target.position.x = Math.random() * 10 - 5;
+                        target.position.z = -Math.random() * 5 - 5;
+                    }, 2000);
 
-					score += 10; // Update the score when a target is hit
-					updateScoreDisplay(); // Update the rendered troika-three-text object
-				}
-			});
-	});
+                    score += 10; // Update the score when a target is hit
+                    updateScoreDisplay(); // Update the rendered troika-three-text object
+                }
+            });
+    });
 }
 ```
 
