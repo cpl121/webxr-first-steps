@@ -18,27 +18,27 @@ Next, inside the `setupScene` function, we create an audio listener and load the
 
 ```javascript
 function setupScene({ scene, camera, renderer, player, controllers }) {
-	// Other setup code...
+    // Other setup code...
 
-	// Load and set up positional audio
-	const listener = new THREE.AudioListener();
-	camera.add(listener);
+    // Load and set up positional audio
+    const listener = new THREE.AudioListener();
+    camera.add(listener);
 
-	const audioLoader = new THREE.AudioLoader();
+    const audioLoader = new THREE.AudioLoader();
 
-	// Laser sound
-	laserSound = new THREE.PositionalAudio(listener);
-	audioLoader.load('assets/laser.ogg', (buffer) => {
-		laserSound.setBuffer(buffer);
-		blasterGroup.add(laserSound);
-	});
+    // Laser sound
+    laserSound = new THREE.PositionalAudio(listener);
+    audioLoader.load('assets/laser.ogg', (buffer) => {
+        laserSound.setBuffer(buffer);
+        blasterGroup.add(laserSound);
+    });
 
-	// Score sound
-	scoreSound = new THREE.PositionalAudio(listener);
-	audioLoader.load('assets/score.ogg', (buffer) => {
-		scoreSound.setBuffer(buffer);
-		scoreText.add(scoreSound);
-	});
+    // Score sound
+    scoreSound = new THREE.PositionalAudio(listener);
+    audioLoader.load('assets/score.ogg', (buffer) => {
+        scoreSound.setBuffer(buffer);
+        scoreText.add(scoreSound);
+    });
 }
 ```
 
@@ -54,17 +54,17 @@ We trigger the sounds when appropriate actions occur:
 
 - **Firing the Blaster**:
 
-  ```javascript
-  if (laserSound.isPlaying) laserSound.stop();
-  laserSound.play();
-  ```
+    ```javascript
+    if (laserSound.isPlaying) laserSound.stop();
+    laserSound.play();
+    ```
 
 - **Scoring Points**:
 
-  ```javascript
-  if (scoreSound.isPlaying) scoreSound.stop();
-  scoreSound.play();
-  ```
+    ```javascript
+    if (scoreSound.isPlaying) scoreSound.stop();
+    scoreSound.play();
+    ```
 
 This ensures that the sounds are played without overlap, providing clear audio feedback to the player.
 
@@ -74,7 +74,7 @@ To enhance the tactile experience, we add haptic feedback when the player fires 
 
 ```javascript
 try {
-	const hapticActuator = gamepad.getHapticActuator(0).pulse(0.6, 100);
+    const hapticActuator = gamepad.getHapticActuator(0).pulse(0.6, 100);
 } catch {}
 ```
 
@@ -90,9 +90,9 @@ Finally, we enhance the visual feedback when a target is hit by animating its di
 ```javascript
 target.visible = false;
 setTimeout(() => {
-	target.visible = true;
-	target.position.x = Math.random() * 10 - 5;
-	target.position.z = -Math.random() * 5 - 5;
+    target.visible = true;
+    target.position.x = Math.random() * 10 - 5;
+    target.position.z = -Math.random() * 5 - 5;
 }, 2000);
 ```
 
@@ -102,26 +102,26 @@ And replace it with:
 import { gsap } from 'gsap';
 
 gsap.to(target.scale, {
-	duration: 0.3,
-	x: 0,
-	y: 0,
-	z: 0,
-	onComplete: () => {
-		target.visible = false;
-		setTimeout(() => {
-			target.visible = true;
-			target.position.x = Math.random() * 10 - 5;
-			target.position.z = -Math.random() * 5 - 5;
+    duration: 0.3,
+    x: 0,
+    y: 0,
+    z: 0,
+    onComplete: () => {
+        target.visible = false;
+        setTimeout(() => {
+            target.visible = true;
+            target.position.x = Math.random() * 10 - 5;
+            target.position.z = -Math.random() * 5 - 5;
 
-			// Scale back up the target
-			gsap.to(target.scale, {
-				duration: 0.3,
-				x: 1,
-				y: 1,
-				z: 1,
-			});
-		}, 1000);
-	},
+            // Scale back up the target
+            gsap.to(target.scale, {
+                duration: 0.3,
+                x: 1,
+                y: 1,
+                z: 1,
+            });
+        }, 1000);
+    },
 });
 ```
 

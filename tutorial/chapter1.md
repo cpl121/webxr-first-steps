@@ -12,20 +12,20 @@ In Three.js, a **mesh** is the combination of **geometry** (the shape) and **mat
 
 - **Geometry**: Defines the shape. For the floor, we use `PlaneGeometry` to create a 6x6 unit rectangle:
 
-  ```javascript
-  const floorGeometry = new THREE.PlaneGeometry(6, 6);
-  ```
+    ```javascript
+    const floorGeometry = new THREE.PlaneGeometry(6, 6);
+    ```
 
 - **Material**: Defines how the surface looks. We use `MeshStandardMaterial` with a white color:
 
-  ```javascript
-  const floorMaterial = new THREE.MeshStandardMaterial({ color: 'white' });
-  ```
+    ```javascript
+    const floorMaterial = new THREE.MeshStandardMaterial({ color: 'white' });
+    ```
 
 - **Mesh**: Combines the geometry and material:
-  ```javascript
-  const floor = new THREE.Mesh(floorGeometry, floorMaterial);
-  ```
+    ```javascript
+    const floor = new THREE.Mesh(floorGeometry, floorMaterial);
+    ```
 
 Finally, we rotate and add the floor to the scene:
 

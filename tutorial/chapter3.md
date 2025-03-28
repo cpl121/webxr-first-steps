@@ -32,22 +32,20 @@ In our `onFrame` function, when a bullet is fired, we calculate its movement dir
 
 ```javascript
 if (controllers.right) {
-	const { gamepad, raySpace } = controllers.right;
-	if (gamepad.getButtonClick(XR_BUTTONS.TRIGGER)) {
-		const bullet = bulletPrototype.clone();
-		scene.add(bullet);
-		raySpace.getWorldPosition(bullet.position);
-		raySpace.getWorldQuaternion(bullet.quaternion);
+    const { gamepad, raySpace } = controllers.right;
+    if (gamepad.getButtonClick(XR_BUTTONS.TRIGGER)) {
+        const bullet = bulletPrototype.clone();
+        scene.add(bullet);
+        raySpace.getWorldPosition(bullet.position);
+        raySpace.getWorldQuaternion(bullet.quaternion);
 
-		const directionVector = forwardVector
-			.clone()
-			.applyQuaternion(bullet.quaternion);
-		bullet.userData = {
-			velocity: directionVector.multiplyScalar(bulletSpeed),
-			timeToLive: bulletTimeToLive,
-		};
-		bullets[bullet.uuid] = bullet;
-	}
+        const directionVector = forwardVector.clone().applyQuaternion(bullet.quaternion);
+        bullet.userData = {
+            velocity: directionVector.multiplyScalar(bulletSpeed),
+            timeToLive: bulletTimeToLive,
+        };
+        bullets[bullet.uuid] = bullet;
+    }
 }
 ```
 
@@ -65,14 +63,14 @@ Each frame, we update the bullets' positions and reduce their TTL:
 
 ```javascript
 Object.values(bullets).forEach((bullet) => {
-	if (bullet.userData.timeToLive < 0) {
-		delete bullets[bullet.uuid];
-		scene.remove(bullet);
-		return;
-	}
-	const deltaVec = bullet.userData.velocity.clone().multiplyScalar(delta);
-	bullet.position.add(deltaVec);
-	bullet.userData.timeToLive -= delta;
+    if (bullet.userData.timeToLive < 0) {
+        delete bullets[bullet.uuid];
+        scene.remove(bullet);
+        return;
+    }
+    const deltaVec = bullet.userData.velocity.clone().multiplyScalar(delta);
+    bullet.position.add(deltaVec);
+    bullet.userData.timeToLive -= delta;
 });
 ```
 
