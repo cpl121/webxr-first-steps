@@ -34,20 +34,16 @@ Now, let’s handle the controller input within the `onFrame` function to spawn 
 ```javascript
 import { XR_BUTTONS } from 'gamepad-wrapper';
 
-function onFrame(
-	delta,
-	time,
-	{ scene, camera, renderer, player, controllers },
-) {
-	if (controllers.right) {
-		const { gamepad, raySpace } = controllers.right;
-		if (gamepad.getButtonClick(XR_BUTTONS.TRIGGER)) {
-			const bullet = bulletPrototype.clone();
-			scene.add(bullet);
-			raySpace.getWorldPosition(bullet.position);
-			raySpace.getWorldQuaternion(bullet.quaternion);
-		}
-	}
+function onFrame(delta, time, { scene, camera, renderer, player, controllers }) {
+    if (controllers.right) {
+        const { gamepad, raySpace } = controllers.right;
+        if (gamepad.getButtonClick(XR_BUTTONS.TRIGGER)) {
+            const bullet = bulletPrototype.clone();
+            scene.add(bullet);
+            raySpace.getWorldPosition(bullet.position);
+            raySpace.getWorldQuaternion(bullet.quaternion);
+        }
+    }
 }
 ```
 
