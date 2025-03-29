@@ -7,15 +7,16 @@
 
 import { PositionalAudio as PAudio, Quaternion, Vector3 } from 'three';
 import { PositionalAudio, useGLTF } from '@react-three/drei';
-import { useXRControllerButtonEvent, useXRInputSourceStateContext } from '@react-three/xr';
+import { useXRControllerButtonEvent, useXRInputSourceStateContext, type XRHandedness } from '@react-three/xr';
 
 import { useBulletStore } from './bullets';
-import { useRef } from 'react';
+import { useRef, useMemo } from 'react';
 
-export const Gun = () => {
-    const state = useXRInputSourceStateContext('controller');
+export const Gun = ({ hand }: XRHandedness) => {
+    const state = useXRInputSourceStateContext('controller', hand);    
     const gamepad = state.inputSource.gamepad;
-    const { scene } = useGLTF('assets/blaster.glb');
+    const original = useGLTF('assets/blaster.glb').scene;
+    const scene = useMemo(() => original.clone(true), []);
     const bulletPrototype = scene.getObjectByName('bullet')!;
     const soundRef = useRef<PAudio>(null);
     useXRControllerButtonEvent(state, 'xr-standard-trigger', (state) => {
@@ -29,7 +30,7 @@ export const Gun = () => {
             const laserSound = soundRef.current!;
             if (laserSound.isPlaying) laserSound.stop();
             laserSound.play();
-            gamepad.hapticActuators[0]?.pulse(0.6, 100);
+            gamepad.hapticActuators?.[0]?.pulse(0.6, 100);
         }
     });
 
