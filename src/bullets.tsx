@@ -13,7 +13,7 @@ import gsap from 'gsap';
 import { targets } from './targets';
 import { useFrame } from '@react-three/fiber';
 import { useGLTF } from '@react-three/drei';
-import { useRef } from 'react';
+import { useRef, useState } from 'react';
 import { useScoreStore } from './score';
 import { useTimeStore } from './time';
 
@@ -68,6 +68,7 @@ type BulletProps = {
     bulletData: BulletData;
 };
 const Bullet = ({ bulletData }: BulletProps) => {
+    const [explosions, setExplosions] = useState([]);
     const { scene } = useGLTF('assets/blaster.glb');
     const bulletPrototype = scene.getObjectByName('bullet')! as Mesh;
     const ref = useRef<Mesh>(null);
@@ -98,6 +99,10 @@ const Bullet = ({ bulletData }: BulletProps) => {
                                 target.visible = true;
                                 target.position.x = Math.random() * 10 - 5;
                                 target.position.z = -Math.random() * 5 - 5;
+                                setExplosions((prev) => [
+                                    ...prev,
+                                    { id: crypto.randomUUID(), position: bullet.position.clone() }
+                                  ]);
 
                                 // Scale back up the target
                                 gsap.to(target.scale, {
@@ -117,11 +122,22 @@ const Bullet = ({ bulletData }: BulletProps) => {
     });
 
     return (
+    <>
         <mesh
             ref={ref}
             geometry={bulletPrototype.geometry}
             material={bulletPrototype.material}
             quaternion={bulletData.initQuaternion}
-        ></mesh>
+            ></mesh>
+            {explosions.map(({ id, position }) => (
+        <HitEffect
+            key={id}
+            position={position}
+            onFinish={() =>
+            setExplosions((prev) => prev.filter((exp) => exp.id !== id))
+            }
+        />
+        ))}
+        </>
     );
 };
