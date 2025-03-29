@@ -13,8 +13,10 @@ import { Bullets } from './bullets';
 import { Gun } from './gun';
 import ReactDOM from 'react-dom/client';
 import { Score } from './score';
+import { Time } from './time';
 import { Target } from './targets';
 import gsap from 'gsap';
+import { useTimeStore } from './time';
 
 const xrStore = createXRStore({
     secondaryInputSources: true,
@@ -49,6 +51,11 @@ const GsapTicker = () => {
     return null;
 };
 
+const enterVR = () => {
+    xrStore.enterVR();
+    useTimeStore.getState().startTime();
+}
+
 const App = () => {
     return (
         <>
@@ -68,6 +75,7 @@ const App = () => {
                 <Target targetIdx={1} />
                 <Target targetIdx={2} />
                 <Score />
+                <Time />
                 <GsapTicker />
                 <XR store={xrStore}></XR>
             </Canvas>
@@ -100,7 +108,7 @@ const App = () => {
                     </div>
                 </div>
                 <button
-                    onClick={() => xrStore.enterVR()}
+                    onClick={enterVR}
                     style={{
                         position: 'fixed',
                         bottom: '20px',
