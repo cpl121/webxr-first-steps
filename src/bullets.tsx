@@ -15,6 +15,7 @@ import { useFrame } from '@react-three/fiber';
 import { useGLTF } from '@react-three/drei';
 import { useRef } from 'react';
 import { useScoreStore } from './score';
+import { useTimeStore } from './time';
 
 const bulletSpeed = 10;
 const forwardVector = new Vector3(0, 0, -1);
@@ -108,7 +109,8 @@ const Bullet = ({ bulletData }: BulletProps) => {
                             }, 1000);
                         },
                     });
-
+                    
+                    useTimeStore.getState().addtime();
                     useScoreStore.getState().addScore();
                 }
             });

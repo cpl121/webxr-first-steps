@@ -9,6 +9,7 @@ import { PositionalAudio as PAudio, Quaternion, Vector3 } from 'three';
 import { PositionalAudio, useGLTF } from '@react-three/drei';
 import { useXRControllerButtonEvent, useXRInputSourceStateContext, type XRHandedness } from '@react-three/xr';
 
+import { useTimeStore } from './time';
 import { useBulletStore } from './bullets';
 import { useRef, useMemo } from 'react';
 
@@ -20,7 +21,7 @@ export const Gun = ({ hand }: XRHandedness) => {
     const bulletPrototype = scene.getObjectByName('bullet')!;
     const soundRef = useRef<PAudio>(null);
     useXRControllerButtonEvent(state, 'xr-standard-trigger', (state) => {
-        if (state === 'pressed') {
+        if (state === 'pressed' && useTimeStore.getState().time > 0) {
             useBulletStore
                 .getState()
                 .addBullet(
