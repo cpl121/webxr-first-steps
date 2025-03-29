@@ -17,6 +17,7 @@ import { Target } from './targets';
 import gsap from 'gsap';
 
 const xrStore = createXRStore({
+    secondaryInputSources: true,
     emulate: {
         controller: {
             left: {
@@ -36,7 +37,8 @@ const xrStore = createXRStore({
         },
     },
     controller: {
-        right: Gun,
+        left: () => <Gun hand="left" />,
+        right: () => <Gun hand="right" />,
     },
 });
 
