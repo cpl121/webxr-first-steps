@@ -1,22 +1,37 @@
 import { useRef, useEffect } from 'react';
-import { useGLTF, useAnimations } from '@react-three/drei';
-import * as THREE from 'three';
+import { Mesh } from 'three';
+import gsap from 'gsap';
 
-export const HitEffect = ({ position }) => {
-  const { scene: explosionScene, animations } = useGLTF('/assets/explosion.glb');
-  const explosionRef = useRef();
-  const { actions } = useAnimations(animations, explosionScene);
+export const HitEffect = ({ position, onFinish }) => {
+  const ref = useRef<Mesh>(null);
 
   useEffect(() => {
-    if (actions && actions.Explode) {
-      const action = actions.Explode;
-      action.reset().play();
-      action.clampWhenFinished = true;
-      action.loop = THREE.LoopOnce;
+    const mesh = ref.current;
+    if (!mesh) return;
 
-    }
-  }, [actions]);
+    mesh.scale.set(0.1, 0.1, 0.1);
+    mesh.material.opacity = 1;
 
-  return <primitive ref={explosionRef} object={explosionScene} position={position} />;
+    gsap.to(mesh.scale, {
+      x: 2,
+      y: 2,
+      z: 2,
+      duration: 0.3,
+      ease: 'power2.out',
+    });
+
+    gsap.to(mesh.material, {
+      opacity: 0,
+      duration: 0.3,
+      delay: 0,
+      onComplete: () => onFinish?.(),
+    });
+  }, []);
+
+  return (
+    <mesh ref={ref} position={position}>
+      <sphereGeometry args={[0.2, 16, 16]} />
+      <meshBasicMaterial color="orange" transparent />
+    </mesh>
+  );
 };
-useGLTF.preload('/assets/explosion.glb');

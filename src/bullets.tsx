@@ -13,9 +13,10 @@ import gsap from 'gsap';
 import { targets } from './targets';
 import { useFrame } from '@react-three/fiber';
 import { useGLTF } from '@react-three/drei';
-import { useRef, useState } from 'react';
+import React, { useRef, useState } from 'react';
 import { useScoreStore } from './score';
 import { useTimeStore } from './time';
+import { HitEffect } from './hit';
 
 const bulletSpeed = 10;
 const forwardVector = new Vector3(0, 0, -1);
@@ -54,11 +55,22 @@ export const useBulletStore = create<BulletStore>((set) => ({
 }));
 
 export const Bullets = () => {
+    const [explosions, setExplosions] = useState([]);
+
     const bullets = useBulletStore((state) => state.bullets);
     return (
         <>
             {bullets.map((bulletData) => (
-                <Bullet bulletData={bulletData} key={bulletData.id} />
+                <Bullet key={bulletData.id} bulletData={bulletData} setExplosions={setExplosions} />
+            ))}
+            {explosions.map(({ id, position }) => (
+                <HitEffect
+                    key={id}
+                    position={position}
+                    onFinish={() =>
+                    setExplosions((prev) => prev.filter((exp) => exp.id !== id))
+                    }
+                />
             ))}
         </>
     );
@@ -66,9 +78,10 @@ export const Bullets = () => {
 
 type BulletProps = {
     bulletData: BulletData;
-};
-const Bullet = ({ bulletData }: BulletProps) => {
-    const [explosions, setExplosions] = useState([]);
+    setExplosions: React.Dispatch<React.SetStateAction<any[]>>;
+  };
+  
+const Bullet = ({ bulletData, setExplosions }: BulletProps) => {
     const { scene } = useGLTF('assets/blaster.glb');
     const bulletPrototype = scene.getObjectByName('bullet')! as Mesh;
     const ref = useRef<Mesh>(null);
@@ -95,14 +108,14 @@ const Bullet = ({ bulletData }: BulletProps) => {
                         z: 0,
                         onComplete: () => {
                             target.visible = false;
+                            setExplosions((prev) => [
+                                ...prev,
+                                { id: crypto.randomUUID(), position: bulletObject.position.clone() },
+                              ]);
                             setTimeout(() => {
                                 target.visible = true;
                                 target.position.x = Math.random() * 10 - 5;
                                 target.position.z = -Math.random() * 5 - 5;
-                                setExplosions((prev) => [
-                                    ...prev,
-                                    { id: crypto.randomUUID(), position: bullet.position.clone() }
-                                  ]);
 
                                 // Scale back up the target
                                 gsap.to(target.scale, {
@@ -122,22 +135,11 @@ const Bullet = ({ bulletData }: BulletProps) => {
     });
 
     return (
-    <>
         <mesh
             ref={ref}
             geometry={bulletPrototype.geometry}
             material={bulletPrototype.material}
             quaternion={bulletData.initQuaternion}
             ></mesh>
-            {explosions.map(({ id, position }) => (
-        <HitEffect
-            key={id}
-            position={position}
-            onFinish={() =>
-            setExplosions((prev) => prev.filter((exp) => exp.id !== id))
-            }
-        />
-        ))}
-        </>
     );
 };
