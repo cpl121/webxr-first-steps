@@ -25,7 +25,7 @@ export const useTimeStore = create<TimeStore>((set) => ({
 
 export const Time = () => {
     const formatTimeText = (time: number) => {
-        return Math.floor(time / 1000).toString().padStart(3, '0');
+        return time > 0 ? Math.floor(time / 1000).toString().padStart(3, '0') : 'END';
     };
 
     const time = useTimeStore((state) => state.time);

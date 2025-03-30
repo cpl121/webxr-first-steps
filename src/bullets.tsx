@@ -102,7 +102,7 @@ const Bullet = ({ bulletData, setExplosions }: BulletProps) => {
                     useBulletStore.getState().removeBullet(bulletData.id);
 
                     gsap.to(target.scale, {
-                        duration: 0.3,
+                        duration: 0,
                         x: 0,
                         y: 0,
                         z: 0,
