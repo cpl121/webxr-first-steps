@@ -17,6 +17,7 @@ import { Time } from './time';
 import { Target } from './targets';
 import gsap from 'gsap';
 import { useTimeStore } from './time';
+/* import { Leva } from 'leva'; */
 
 const xrStore = createXRStore({
     secondaryInputSources: true,
@@ -59,6 +60,7 @@ const enterVR = () => {
 const App = () => {
     return (
         <>
+           {/*  <Leva /> */}
             <Canvas
                 style={{
                     position: 'fixed',
